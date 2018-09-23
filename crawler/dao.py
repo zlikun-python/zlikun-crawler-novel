@@ -4,7 +4,8 @@
 import datetime
 import logging
 
-from pymongo import MongoClient
+from bson import json_util
+from pymongo import MongoClient, DESCENDING
 
 import config
 
@@ -25,6 +26,18 @@ class MongoDao:
         if exc_val is not None:
             logging.error("exc_type = %s, exc_val = %s, exc_tb = %s", exc_type, exc_val, exc_tb)
         self.client.close()
+
+    def query_target_novel(self, page=0, limit=5):
+        """
+        查询小说列表，分页查询
+
+        :param page:
+        :param limit:
+        :return:
+        """
+        collection = self.db.novel
+        # 查询排除"update_time"字段，由"projection"参数控制，0表示排除
+        return collection.find({}, {"update_time": 0}).skip(page * limit).limit(limit)
 
     def upsert_target_novel(self, novel_name, novel_author, novel_cover, novel_catalog_url):
         """
@@ -50,6 +63,17 @@ class MongoDao:
         return collection.update_one({"novel_name": novel_name, "novel_author": novel_author},
                                      {"$set": data},
                                      upsert=True).raw_result
+
+    def query_novel_chapter_latest(self, novel_id):
+        """
+        查询小说章节列表最后一个章节信息
+
+        :param novel_id:
+        :return:
+        """
+
+        # 下面这种做法性能较差，数据规模小时临时用一下，后面应把最后一条记录写入缓存或数据库，直接查询比较好
+        return self.db.chapter.find({"novel_id": novel_id}).sort("_id", DESCENDING).limit(1)[0]
 
     def insert_novel_chapter(self, novel_id, title, content, number, original_url):
         """
@@ -93,3 +117,22 @@ if __name__ == '__main__':
                                                "https://www.biquge5200.cc/52_52542/20380548.html")
         # 5ba78bf414170f59d84b78ed
         logging.debug(inserted_id)
+
+        # 查询小说列表
+        """
+        {
+            "_id": {
+                "$oid": "5ba789bb664952eb0c36f93a"
+            },
+            "novel_author": "\u8fb0\u4e1c",
+            "novel_name": "\u5723\u589f",
+            "novel_catalog_url": "https://www.biquge5200.cc/52_52542/",
+            "novel_cover": "http://r.m.biquge5200.cc/cover/aHR0cDovL3FpZGlhbi5xcGljLmNuL3FkYmltZy8zNDk1NzMvMTAwNDYwODczOC8xODA="
+        }
+        """
+        for novel in dao.query_target_novel():
+            logging.debug(json_util.dumps(novel, indent=4))
+
+        # 查询指定小说最新章节
+        # {'_id': ObjectId('5ba7992514170f5c201c65a6'), 'novel_id': '5ba789bb664952eb0c36f93a', 'title': '第一章 沙漠中的彼岸花', 'content': '大漠孤烟直，长河落日圆。...', 'number': '20380548', 'original_chapter_url': 'https://www.biquge5200.cc/52_52542/20380548.html', 'create_time': datetime.datetime(2018, 9, 23, 13, 46, 13, 76000)}
+        logging.debug(dao.query_novel_chapter_latest("5ba789bb664952eb0c36f93a"))
