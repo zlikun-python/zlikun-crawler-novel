@@ -3,9 +3,8 @@
 # Author: zlikun
 import re
 
-from pyquery import PyQuery
-
 from downloader import download
+from pyquery import PyQuery
 
 
 def parse_chapter(html, url):
@@ -16,6 +15,7 @@ def parse_chapter(html, url):
     :param url:
     :return: ($title, $content, $url, $number)
     """
+    if not html or not url: return
     pq = PyQuery(html, url=url)
     title = pq('div.bookname > h1').text().strip()
     content = content_filter(pq('#content').text().strip())
