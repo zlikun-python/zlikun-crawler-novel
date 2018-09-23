@@ -3,7 +3,6 @@
 # Author: zlikun
 import datetime
 import logging
-import time
 
 from pymongo import MongoClient
 
