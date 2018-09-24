@@ -7,7 +7,7 @@ import logging
 import os
 
 # logging
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     datefmt="%Y/%m/%d %H:%M:%S",
                     format="%(asctime)s %(levelname)8s %(process)05d L%(lineno)03d %(funcName)s %(message)s")
 

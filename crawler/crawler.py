@@ -2,12 +2,15 @@
 # -*- coding:utf-8 -*-
 # Author: zlikun
 
+import logging
+import os
 import sys
+import time
+
+import schedule
 
 sys.path.append("./")
 sys.path.append("../")
-
-import logging
 
 from dao import MongoDao
 from downloader import download
@@ -70,6 +73,7 @@ def start():
 
     :return:
     """
+    logging.info("启动爬虫，更新小说 ...")
 
     # 从数据库中检索所有小说
     with MongoDao() as dao:
@@ -92,11 +96,15 @@ def start():
         if new_urls:
             for new_url in new_urls:
                 update_chapter(new_url, novel_id)
-        pass
-    pass
+
+    logging.info("停止爬虫，更新结束 ...")
 
 
 if __name__ == '__main__':
-    logging.debug("--begin--")
-    start()
-    logging.debug("--end--")
+
+    # 每天19:00更新小说
+    schedule.every().day.at(os.getenv("SCHEDULE_AT", "19:00")).do(start)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

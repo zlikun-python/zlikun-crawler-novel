@@ -5,6 +5,7 @@ MAINTAINER zlikun <zlikun-dev@hotmail.com>
 ENV VERSION v1.0.0
 ENV MONGO_HOST mongo
 ENV MONGO_PORT 27017
+ENV SCHEDULE_AT 19:00
 
 WORKDIR /opt/__app__
 
