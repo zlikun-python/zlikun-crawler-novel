@@ -65,6 +65,28 @@ def parse_catalog(html, url, flag_url=None):
     return chapters
 
 
+def parse_novel_page(html, url):
+    """
+    解析小说主页（章节列表页，但提取的是小说相关数据）
+
+    :param html: 要解析的网页正文
+    :param url: 要解析的网页URL
+    :return:
+    """
+    pq = PyQuery(html, url=url)
+
+    novel_name = pq("#info > h1").text().strip()
+    novel_author = pq("#info > p:eq(0)").text().replace("作\xa0\xa0\xa0\xa0者：", "").strip()
+    novel_cover = pq("#fmimg > img").attr("src")
+
+    return {
+        "novel_name": novel_name,
+        "novel_author": novel_author,
+        "novel_cover": novel_cover,
+        "novel_catalog_url": url
+    }
+
+
 if __name__ == '__main__':
     # 测试从URL中提取编号
     url = "https://www.biquge5200.cc/52_52542/20380548.html"
@@ -84,3 +106,7 @@ if __name__ == '__main__':
     # ['https://www.biquge5200.cc/52_52542/158199227.html', 'https://www.biquge5200.cc/52_52542/158213176.html',
     # 'https://www.biquge5200.cc/52_52542/158263103.html', 'https://www.biquge5200.cc/52_52542/158264558.html']
     print(parse_catalog(download(url), url, "https://www.biquge5200.cc/52_52542/158145109.html"))
+
+    # 测试小说主页解析器
+    url = "https://www.biquge5200.cc/76_76490/";
+    print(parse_novel_page(download(url), url))

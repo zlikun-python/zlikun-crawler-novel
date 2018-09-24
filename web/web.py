@@ -4,13 +4,15 @@
 # 实现一个WEB服务，用于配置股价预警任务
 import sys
 
+from flask.json import jsonify
+
 sys.path.append("./")
 sys.path.append("../")
 
 import json
 
 from dao import MongoDao
-from flask import Flask, render_template, Response, abort
+from flask import Flask, render_template, Response, abort, request
 
 app = Flask(__name__, template_folder="./templates")
 
@@ -74,6 +76,29 @@ def page_not_found(error):
     resp = Response(json.dumps({"error_code": "404"}))
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
+
+
+# 临时存储新小说URL信息
+new_novel_url_local_storage = set()
+
+
+@app.route("/new_novels", methods=["POST", "GET"])
+def new_novels():
+    if request.method == "POST":
+        # POST 请求，用于提交新小说
+        new_novel_url = request.form.get("new_novel_url")
+        if not new_novel_url or not new_novel_url.startswith("https://www.biquge5200.cc/"):
+            abort(400)
+        else:
+            new_novel_url_local_storage.add(new_novel_url)
+            return "OK"
+    else:
+        # GET 请求，用于查询提交的新小说链接，约定只允许爬虫读取，所以每次读取后，清空临时存储
+        urls = []
+        while new_novel_url_local_storage:
+            urls.append(new_novel_url_local_storage.pop())
+
+    return jsonify(urls)
 
 
 if __name__ == '__main__':
