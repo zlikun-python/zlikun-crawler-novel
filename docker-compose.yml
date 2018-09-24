@@ -1,0 +1,29 @@
+version: "3"
+services:
+  novel_crawler:
+    build:
+      context: .
+      dockerfile: ./crawler/Dockerfile
+    image: novel_crawler
+    container_name: novel_crawler
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_HOST=mongo_novel
+  novel_web:
+    build:
+      context: .
+      dockerfile: ./web/Dockerfile
+    image: novel_web
+    container_name: novel_web
+    ports:
+      - 40020:80
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_HOST=mongo_novel
+  mongo:
+    image: mongo
+    container_name: mongo_novel
+    volumes:
+      - /data/mongo/mongo_novel:/data/db

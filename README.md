@@ -17,3 +17,8 @@ $ docker build -t novel_web -f web/Dockerfile .
 # 运行WEB容器
 $ docker run --rm --name novel_web --link mongo -p 40020:80 novel_web
 ```
+
+#### 构建
+```
+$ docker-compose up -d
+```
