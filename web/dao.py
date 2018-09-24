@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 # Author: zlikun
-import datetime
 import logging
 
 from bson import json_util, ObjectId
-from pymongo import MongoClient, DESCENDING
+from pymongo import MongoClient
 
 import config
 import utils

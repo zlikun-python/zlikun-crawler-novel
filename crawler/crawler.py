@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 # Author: zlikun
+
+import sys
+
+sys.path.append("./")
+sys.path.append("../")
+
 import logging
 
 from dao import MongoDao

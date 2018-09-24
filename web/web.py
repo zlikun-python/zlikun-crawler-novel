@@ -2,6 +2,11 @@
 # -*- coding:utf-8 -*-
 # Author: zlikun
 # 实现一个WEB服务，用于配置股价预警任务
+import sys
+
+sys.path.append("./")
+sys.path.append("../")
+
 import json
 
 from dao import MongoDao
@@ -72,4 +77,5 @@ def page_not_found(error):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=80)
+    # app.run(debug=True, port=80)
+    app.run(host="0.0.0.0", port=80)
