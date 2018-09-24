@@ -20,6 +20,19 @@ def headers(ext_headers={}):
     return data
 
 
+def get_first_from_list(lst):
+    """
+    从列表中取得第一个元素，如果列表空，返回None
+
+    :param lst:
+    :return:
+    """
+    if lst:
+        return lst[0]
+    else:
+        return None
+
+
 if __name__ == '__main__':
     print(json.dumps(headers({"User-Agent": "requests/2.19.1"}), indent=4))
     print(json.dumps(headers({"Host": "www.biquge5200.cc", "Referer": "www.biquge5200.cc"}), indent=4))
