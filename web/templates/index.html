@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>小说列表</title>
+</head>
+<body>
+
+<ul>
+    {% for novel in novels %}
+        <li>
+            <a href="/novel/{{ novel["_id"] }}" target="_blank">
+                [{{ novel["novel_author"] }}] 《{{ novel["novel_name"] }}》
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+
+</body>
+</html>

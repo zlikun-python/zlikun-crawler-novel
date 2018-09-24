@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>《{{ novel["novel_name"] }}》- {{ novel["novel_author"] }}</title>
+</head>
+<body>
+
+<h3><a href="{{ novel["novel_catalog_url"] }}" target="_blank">阅读原网页</a></h3>
+
+<ul>
+    {% for catalog in catalogs %}
+        <li>
+            <a href="/novel/{{ novel["_id"] }}/{{ catalog[0] }}" target="_blank">
+                {{ catalog[1] }}
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+
+</body>
+</html>

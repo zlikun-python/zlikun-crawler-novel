@@ -41,6 +41,16 @@ class MongoDao:
         cursor = collection.find({}, {"update_time": 0}).skip(page * limit).limit(limit)
         return [data for data in cursor]
 
+    def query_novel(self, novel_id):
+        """
+        查询指定小说
+
+        :param novel_id:
+        :return:
+        """
+        collection = self.db.novel
+        return collection.find_one({"_id": ObjectId(novel_id)})
+
     def query_novel_chapter_catalog(self, novel_id):
         """
         查询小说章节列表，标题、内容、源网页
