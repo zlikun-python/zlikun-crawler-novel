@@ -4,13 +4,12 @@
 # 实现一个WEB服务，用于配置股价预警任务
 import sys
 
-import utils
-
 sys.path.append("./")
 sys.path.append("../")
 
 import json
 
+import utils
 from dao import MongoDao
 from flask import Flask, render_template, Response, abort
 

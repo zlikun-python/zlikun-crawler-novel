@@ -102,12 +102,12 @@ def start():
 
 
 if __name__ == '__main__':
+    # 每次启动时运行一次爬虫
+    start()
+
     # 每天19:00更新小说
     schedule.every().day.at(os.getenv("SCHEDULE_AT", "19:00")).do(start)
 
     while True:
         schedule.run_pending()
         time.sleep(1)
-
-    # # 测试爬虫
-    # start()
