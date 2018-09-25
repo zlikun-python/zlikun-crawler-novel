@@ -6,22 +6,22 @@
 </head>
 <body>
 
-<h3><a href="{{ chapter["original_url"] }}" target="_blank">阅读原网页</a></h3>
+<h3><a href="{{ chapter['original_url'] }}" target="_blank">阅读原网页</a></h3>
 
 <div>
     <h4>{{ chapter["title"] }}</h4>
-    <div>
+    <div style="padding: 5px 10px; font-size:150%;">
         {{ chapter["content"]|safe }}
     </div>
 </div>
 
-<footer style="text-align: center;">
+<footer style="text-align: center; font-size:200%;margin-top:20px;">
     {% if prev_id %}
-        <a href="/novel/{{ novel_id }}/{{ prev_id }}">上一章</a> &nbsp;&nbsp;
+    <a href="/novel/{{ novel_id }}/{{ prev_id }}">上一章</a> &nbsp;&nbsp;
     {% endif %}
     <a href="/novel/{{ novel_id }}">目录</a> &nbsp;&nbsp;
     {% if next_id %}
-        <a href="/novel/{{ novel_id }}/{{ next_id }}">下一章</a>
+    <a href="/novel/{{ novel_id }}/{{ next_id }}">下一章</a>
     {% endif %}
 </footer>
 
