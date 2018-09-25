@@ -8,14 +8,13 @@ import sys
 import time
 
 import schedule
-from flask import json
 
 sys.path.append("./")
 sys.path.append("../")
 
 from dao import MongoDao
 from downloader import download
-from html_parser import parse_catalog, parse_chapter, parse_novel_page
+from html_parser import parse_catalog, parse_chapter
 
 
 def novel_iterator(dao):
@@ -102,39 +101,9 @@ def start():
     logging.info("停止爬虫，更新结束 ...")
 
 
-def check():
-    # 这里的地址是使用的docker的主机名，暂时这样用 ~
-    check_url = "http://novel_web/new_novels"
-    # check_url = "http://localhost/new_novels"
-    try:
-        content = download(check_url)
-        if content:
-            urls = json.loads(content)
-            if urls:
-                for url in urls:
-                    # 下载新提交小说主页，需要将之更新到数据库中
-                    content = download(url)
-                    if content:
-                        # 解析网页，抽取
-                        novel_info = parse_novel_page(content, url)
-                        # 保存小说信息
-                        with MongoDao() as dao:
-                            dao.save_novel({"name": novel_info["name"],
-                                            "author": novel_info["author"],
-                                            "cover": novel_info["cover"],
-                                            "origin_url": novel_info["origin_url"]})
-            # 主动启动爬虫更新数据
-            start()
-    except BaseException:
-        pass
-
-
 if __name__ == '__main__':
     # 每天19:00更新小说
     schedule.every().day.at(os.getenv("SCHEDULE_AT", "19:00")).do(start)
-
-    # 增加一个固定任务（每30秒检查一次），检查固定URL，该URL返回一组小说URL列表，表示新增小说，将启动爬虫主动更新
-    schedule.every(30).seconds.do(check)
 
     while True:
         schedule.run_pending()
