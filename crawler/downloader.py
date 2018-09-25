@@ -23,7 +23,7 @@ def download(url, headers={}):
     :return:
     """
     headers.update(default_headers)
-    for _ in range(4):
+    for i in range(4):
         try:
             response = requests.get(url, headers=utils.headers(headers))
             response.raise_for_status()
@@ -32,8 +32,8 @@ def download(url, headers={}):
             else:
                 logging.warning("下载 {} 返回状态码：{}".format(url, response.status_code))
         except requests.RequestException:
-            logging.error("下载 {} 出错！".format(url), exc_info=True)
-        time.sleep(1)
+            logging.error("下载 {} 出错！".format(url))
+        time.sleep(i / 10)
 
 
 if __name__ == '__main__':

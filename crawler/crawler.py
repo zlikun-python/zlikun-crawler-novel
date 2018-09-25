@@ -27,45 +27,46 @@ def novel_iterator(dao):
     """
     page = 0
     while True:
-        results = dao.query_target_novel(page=page)
-        if not results: return
+        results = dao.list_novel(page=page)
+        if not results:
+            return
         yield from results
         page += 1
     return
 
 
-def chapter_urls(catalog_url, flag_url):
+def chapter_urls(novel_origin_url, flag_url):
     """
     返回更新章节列表
 
-    :param catalog_url:
+    :param novel_origin_url:
     :param flag_url:
     :return:
     """
-    html = download(catalog_url)
+    html = download(novel_origin_url)
     if html:
-        return parse_catalog(html, catalog_url, flag_url)
+        return parse_catalog(html, novel_origin_url, flag_url)
     return []
 
 
-def update_chapter(chapter_url, novel_id):
+def update_chapter(chapter_origin_url, novel_id):
     """
     更新章节信息
 
-    :param chapter_url:
+    :param chapter_origin_url:
     :param novel_id:
     :return:
     """
     try:
-        html = download(chapter_url)
+        html = download(chapter_origin_url)
         if html:
-            # ($title, $content, $url, $number)
-            results = parse_chapter(html, chapter_url)
+            # ($title, $content, $url)
+            results = parse_chapter(html, chapter_origin_url)
             if results:
                 with MongoDao() as dao:
-                    dao.insert_novel_chapter(novel_id, results[0], results[1], results[3], results[2])
-    except Exception:
-        logging.error("更新章节[{}]出错！".format(chapter_url), exc_info=True)
+                    dao.save_chapter(novel_id, {"title": results[0], "content": results[1], "origin_url": results[2]})
+    except BaseException:
+        logging.error("更新章节[{}]出错！".format(chapter_origin_url))
 
 
 def start():
@@ -84,16 +85,16 @@ def start():
 
     # 遍历小说，依次更新之
     for novel in novels:
-        logging.debug("正在爬取更新 《%s》 ", novel["novel_name"])
+        logging.debug("正在爬取更新 《%s》 ", novel["name"])
         # 遍历小说列表，依次检查其是否有更新
         # {'number': '20380548', 'original_url': 'https://www.biquge5200.cc/52_52542/20380548.html'}
         novel_id = str(novel["_id"])
         # 获取最新章节，以源url作为更新标志位
         with MongoDao() as dao:
-            chapter = dao.query_novel_chapter_latest(novel_id)
+            chapter = dao.get_latest_chapter(novel_id)
 
         # 如有更新，则将更新部分爬取下来，入库
-        new_urls = chapter_urls(novel["novel_catalog_url"], chapter and chapter["original_url"])
+        new_urls = chapter_urls(novel["origin_url"], chapter and chapter["origin_url"])
         if new_urls:
             for new_url in new_urls:
                 update_chapter(new_url, novel_id)
@@ -118,10 +119,10 @@ def check():
                         novel_info = parse_novel_page(content, url)
                         # 保存小说信息
                         with MongoDao() as dao:
-                            dao.upsert_target_novel(novel_info["novel_name"],
-                                                    novel_info["novel_author"],
-                                                    novel_info["novel_cover"],
-                                                    novel_info["novel_catalog_url"])
+                            dao.save_novel({"name": novel_info["name"],
+                                            "author": novel_info["author"],
+                                            "cover": novel_info["cover"],
+                                            "origin_url": novel_info["origin_url"]})
             # 主动启动爬虫更新数据
             start()
     except BaseException:
@@ -129,7 +130,6 @@ def check():
 
 
 if __name__ == '__main__':
-
     # 每天19:00更新小说
     schedule.every().day.at(os.getenv("SCHEDULE_AT", "19:00")).do(start)
 
@@ -139,3 +139,6 @@ if __name__ == '__main__':
     while True:
         schedule.run_pending()
         time.sleep(1)
+
+    # # 测试爬虫
+    # start()

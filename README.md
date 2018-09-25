@@ -1,5 +1,14 @@
 # 小说爬虫
 
+#### 建模
+```
+# 小说表(novel)
+[id, name, author, cover, origin_url, update_time]
+
+# 章节表（novel_${novel_id}）
+[id, title, content, origin_url, create_time]
+```
+
 #### 爬虫
 ```
 # 构建爬虫镜像

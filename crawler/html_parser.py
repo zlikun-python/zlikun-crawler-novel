@@ -13,13 +13,13 @@ def parse_chapter(html, url):
 
     :param html:
     :param url:
-    :return: ($title, $content, $url, $number)
+    :return: ($title, $content, $url)
     """
     if not html or not url: return
     pq = PyQuery(html, url=url)
     title = pq('div.bookname > h1').text().strip()
     content = content_filter(pq('#content').text().strip())
-    return title, content, url, re.search(r"/(\d+).html$", url).group(1)
+    return title, content, url
 
 
 def content_filter(content):
@@ -75,15 +75,15 @@ def parse_novel_page(html, url):
     """
     pq = PyQuery(html, url=url)
 
-    novel_name = pq("#info > h1").text().strip()
-    novel_author = pq("#info > p:eq(0)").text().replace("作\xa0\xa0\xa0\xa0者：", "").strip()
-    novel_cover = pq("#fmimg > img").attr("src")
+    name = pq("#info > h1").text().strip()
+    author = pq("#info > p:eq(0)").text().replace("作\xa0\xa0\xa0\xa0者：", "").strip()
+    cover = pq("#fmimg > img").attr("src")
 
     return {
-        "novel_name": novel_name,
-        "novel_author": novel_author,
-        "novel_cover": novel_cover,
-        "novel_catalog_url": url
+        "name": name,
+        "author": author,
+        "cover": cover,
+        "catalog_url": url
     }
 
 
