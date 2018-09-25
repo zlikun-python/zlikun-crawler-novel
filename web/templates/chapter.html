@@ -3,19 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ chapter["title"] }}</title>
+    <style>
+        body {
+            font-size: 120%;
+        }
+    </style>
 </head>
 <body>
 
-<h3><a href="{{ chapter['original_url'] }}" target="_blank">阅读原网页</a></h3>
+<h3><a href="{{ chapter['origin_url'] }}" target="_blank">阅读原网页</a></h3>
+
+<header style="text-align: center; margin:20px 0;">
+    {% if prev_id %}
+    <a href="/novel/{{ novel_id }}/{{ prev_id }}">上一章</a> &nbsp;&nbsp;
+    {% endif %}
+    <a href="/novel/{{ novel_id }}">目录</a> &nbsp;&nbsp;
+    {% if next_id %}
+    <a href="/novel/{{ novel_id }}/{{ next_id }}">下一章</a>
+    {% endif %}
+</header>
 
 <div>
     <h4>{{ chapter["title"] }}</h4>
-    <div style="padding: 5px 10px; font-size:150%;">
+    <div style="padding: 5px 10px;">
         {{ chapter["content"]|safe }}
     </div>
 </div>
 
-<footer style="text-align: center; font-size:200%;margin-top:20px;">
+<footer style="text-align: center; margin-top:20px;">
     {% if prev_id %}
     <a href="/novel/{{ novel_id }}/{{ prev_id }}">上一章</a> &nbsp;&nbsp;
     {% endif %}

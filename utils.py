@@ -20,7 +20,7 @@ def headers(ext_headers={}):
     return data
 
 
-def get_first_from_list(lst):
+def get_first_item(lst):
     """
     从列表中取得第一个元素，如果列表空，返回None
 
@@ -31,6 +31,18 @@ def get_first_from_list(lst):
         return lst[0]
     else:
         return None
+
+
+def convert_id_string(data):
+    """
+    转换字典中的_id字段为字符串类型（针对ObjectId类型）
+
+    :param data:
+    :return:
+    """
+    if data and "_id" in data:
+        data["_id"] = str(data["_id"])
+    return data
 
 
 if __name__ == '__main__':

@@ -6,6 +6,8 @@ import sys
 
 from flask.json import jsonify
 
+import utils
+
 sys.path.append("./")
 sys.path.append("../")
 
@@ -26,7 +28,7 @@ def query_novels():
     """
 
     with MongoDao() as dao:
-        novels = dao.query_target_novel()
+        novels = dao.list_novel()
 
     return render_template('index.html', novels=novels)
 
@@ -35,18 +37,17 @@ def query_novels():
 def query_novel(novel_id):
     with MongoDao() as dao:
         # 查询小说信息
-        novel = dao.query_novel(novel_id)
-        # 查询章节列表
-        catalogs = dao.query_novel_chapter_catalog(novel_id)
+        data = dao.get_novel(novel_id)
 
-    return render_template('catalog.html', novel=novel, catalogs=catalogs)
+    return render_template('catalog.html',
+                           novel=utils.convert_id_string(data["novel"]),
+                           chapters=map(utils.convert_id_string, data["chapters"]))
 
 
 @app.route('/novel/<novel_id>/<chapter_id>', methods=["GET"])
 def query_chapter(novel_id, chapter_id):
     with MongoDao() as dao:
-        # 查询章节正文
-        result = dao.query_novel_chapter(chapter_id)
+        result = dao.get_chapter(novel_id, chapter_id)
         if not result:
             abort(404)
             return

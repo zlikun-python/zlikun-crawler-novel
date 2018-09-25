@@ -3,7 +3,7 @@
 # Author: zlikun
 import logging
 
-from bson import json_util, ObjectId
+from bson import ObjectId
 from pymongo import MongoClient
 
 import config
@@ -27,85 +27,66 @@ class MongoDao:
             logging.error("exc_type = %s, exc_val = %s, exc_tb = %s", exc_type, exc_val, exc_tb)
         self.client.close()
 
-    def query_target_novel(self, page=0, limit=5):
+    def list_novel(self, page=0, limit=10):
         """
-        查询小说列表，分页查询
+        遍历小说列表，返回ID、名字、作者等信息
 
         :param page:
         :param limit:
         :return:
         """
         collection = self.db.novel
-        # 查询排除"update_time"字段，由"projection"参数控制，0表示排除
         cursor = collection.find({}, {"update_time": 0}).skip(page * limit).limit(limit)
         return [data for data in cursor]
 
-    def query_novel(self, novel_id):
+    def get_novel(self, novel_id):
         """
-        查询指定小说
+        查询小说信息，返回小说信息、章节列表
 
         :param novel_id:
         :return:
         """
-        collection = self.db.novel
-        return collection.find_one({"_id": ObjectId(novel_id)})
+        novel = self.db.novel.find_one({"_id": ObjectId(novel_id)})
+        if novel:
+            chapters = [item for item in self.db["chapter_{}".format(novel_id)].find({}, {"title": 1})]
+            print(chapters)
 
-    def query_novel_chapter_catalog(self, novel_id):
+        return {
+            "novel": novel,
+            "chapters": chapters
+        }
+
+    def get_chapter(self, novel_id, chapter_id):
         """
-        查询小说章节列表，标题、内容、源网页
+        查询小说章节信息
 
         :param novel_id:
-        :return:
-        """
-
-        # 一次读取整本小说的章节列表数据
-        cursor = self.db.chapter.find({"novel_id": novel_id}, {"_id": 1, "title": 1})
-        # 将_id转换为字符串
-        return [(str(data["_id"]), data["title"]) for data in cursor]
-
-    def query_novel_chapter(self, chapter_id):
-        """
-        查询小说章节正文数据
-
         :param chapter_id:
         :return:
         """
-        collection = self.db.chapter
         oid = ObjectId(chapter_id)
+        collection = self.db["chapter_{}".format(novel_id)]
+        curr_chapter = collection.find_one({"_id": oid})
+
         # 查询该章节的上一章和下一章
-        prev_chapter = utils.get_first_from_list(
+        prev_chapter = utils.get_first_item(
             [item for item in collection.find({"_id": {"$lt": oid}}, {"title": 1}).limit(1)])
-        next_chapter = utils.get_first_from_list(
+        next_chapter = utils.get_first_item(
             [item for item in collection.find({"_id": {"$gt": oid}}, {"title": 1}).limit(1)])
 
         # 查询章节信息
-        return {"curr_chapter": collection.find_one({"_id": oid},
-                                                    {"title": 1, "content": 1, "original_url": 1}),
+        return {"curr_chapter": curr_chapter,
                 "prev_chapter": prev_chapter,
                 "next_chapter": next_chapter}
 
 
 if __name__ == '__main__':
     with MongoDao() as dao:
+        # 测试查询小说列表
+        print(dao.list_novel())
 
-        # 查询小说列表
-        """
-        {
-            "_id": {
-                "$oid": "5ba789bb664952eb0c36f93a"
-            },
-            "novel_author": "\u8fb0\u4e1c",
-            "novel_name": "\u5723\u589f",
-            "novel_catalog_url": "https://www.biquge5200.cc/52_52542/",
-            "novel_cover": "http://r.m.biquge5200.cc/cover/aHR0cDovL3FpZGlhbi5xcGljLmNuL3FkYmltZy8zNDk1NzMvMTAwNDYwODczOC8xODA="
-        }
-        """
-        for novel in dao.query_target_novel():
-            logging.debug(json_util.dumps(novel, indent=4))
+        # 测试查询小说
+        print(dao.get_novel("5baa2a141056cceef3aff29d"))
 
-        # 查询指定小说最新章节
-        # {'number': '20380548', 'original_url': 'https://www.biquge5200.cc/52_52542/20380548.html'}
-        logging.debug(dao.query_novel_chapter_catalog("5ba789bb664952eb0c36f93a"))
-
-        # 查询小说章节正文
-        logging.debug(dao.query_novel_chapter("5ba83a8214170f5a5c80d94a"))
+        # 测试查询章节
+        print(dao.get_chapter("5baa2a141056cceef3aff29d", "5baa32c1a6c85b36d430ee1c"))
