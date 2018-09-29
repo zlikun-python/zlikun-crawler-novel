@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 # Author: zlikun
-import re
+import asyncio
 
+import aiohttp
 from downloader import download
 from pyquery import PyQuery
 
 
-def parse_chapter(html, url):
+async def parse_chapter(html, url):
     """
     章节正文解析器
 
@@ -33,14 +34,14 @@ def content_filter(content):
     return content
 
 
-def parse_catalog(html, url, flag_url=None):
+async def parse_catalog(html, url, flag_url=None):
     """
     章节列表解析器
 
     :param html: 要解析的网页正文
     :param url: 要解析的网页URL
     :param flag_url: 用于过滤已处理过URL的标记URL，按顺序遍历章节列表，取该标记之后（不包含flag_url）的URL
-    :return:
+    :return: [(id, url), (id, url), ...]
     """
     pq = PyQuery(html, url=url)
 
@@ -60,12 +61,12 @@ def parse_catalog(html, url, flag_url=None):
             if href == flag_url:
                 flag = True
         else:
-            chapters.append(href)
+            chapters.append((i - 8, href))
 
     return chapters
 
 
-def parse_novel_page(html, url):
+async def parse_novel_page(html, url):
     """
     解析小说主页（章节列表页，但提取的是小说相关数据）
 
@@ -87,26 +88,34 @@ def parse_novel_page(html, url):
     }
 
 
+async def testing():
+    async with aiohttp.ClientSession() as session:
+        # 章节列表页
+        url = "https://www.biquge5200.cc/52_52542/"
+        html = await download(session, url)
+
+        # 测试解析章节列表
+        catalog_data = await parse_catalog(html, url)
+        print(catalog_data)
+
+        # 测试解析小说信息
+        novel_data = await parse_novel_page(html, url)
+        print(novel_data)
+
+        # 章节正文页
+        url = "https://www.biquge5200.cc/52_52542/20380548.html"
+        html = await download(session, url)
+
+        # 测试解析章节正文
+        chapter_data = await parse_chapter(html, url)
+        print(chapter_data)
+
+
 if __name__ == '__main__':
-    # 测试从URL中提取编号
-    url = "https://www.biquge5200.cc/52_52542/20380548.html"
-    number = re.search(r"/(\d+).html$", url).group(1)
-    print(number, url)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(testing())
+    loop.close()
+
     # 测试过滤器
     # 大漠孤烟直，    长河落日圆。    一望无垠的大漠，...
     print(content_filter("大漠孤烟直，&nbsp;&nbsp;&nbsp;&nbsp;长河落日圆。&nbsp;&nbsp;&nbsp;&nbsp;一望无垠的大漠，..."))
-    # 测试章节正文解析器
-    # ('第一章 沙漠中的彼岸花', '大漠孤烟直，长河落日圆。\n一望无垠的大漠，空旷而高远，...', 'https://www.biquge5200.cc/52_52542/20380548.html', '20380548')
-    # print(parse_chapter(download(url), url))
-    # 测试章节列表解析器
-    url = "https://www.biquge5200.cc/52_52542/"
-    # 返回所有章节链接
-    print(parse_catalog(download(url), url))
-    # 指定标记链接，返回标记之后的链接
-    # ['https://www.biquge5200.cc/52_52542/158199227.html', 'https://www.biquge5200.cc/52_52542/158213176.html',
-    # 'https://www.biquge5200.cc/52_52542/158263103.html', 'https://www.biquge5200.cc/52_52542/158264558.html']
-    print(parse_catalog(download(url), url, "https://www.biquge5200.cc/52_52542/158145109.html"))
-
-    # 测试小说主页解析器
-    url = "https://www.biquge5200.cc/76_76490/";
-    print(parse_novel_page(download(url), url))
