@@ -1,3 +1,5 @@
+yarl
+aiohttp
 schedule
 bson
 flask
