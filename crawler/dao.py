@@ -59,8 +59,9 @@ class MongoDao:
         novel = self.db.novel.find_one({"_id": ObjectId(novel_id)})
         print(novel)
 
+        chapters = []
         if novel:
-            chapters = [item for item in self.db["chapter_{}".format(novel_id)].find({}, {"title": 1})]
+            chapters += [item for item in self.db["chapter_{}".format(novel_id)].find({}, {"title": 1})]
 
         return {
             "novel": novel,
