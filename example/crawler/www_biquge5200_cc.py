@@ -54,7 +54,10 @@ class Crawler:
         :param novel_number: 小说编号（取章节列表页URL最后一部分）
         """
         self.novel_name = novel_name
-        self.catalog_url = "https://www.biquge5200.cc/{}/".format(novel_number)
+        if "https" in novel_number:
+            self.catalog_url = novel_number
+        else:
+            self.catalog_url = "https://www.biquge5200.cc/{}/".format(novel_number)
 
         # 写入小说名称信息
         with open(novel_txt_path(self.novel_name), 'w', encoding="utf-8") as f:
@@ -146,6 +149,9 @@ class Crawler:
 
         # 下载章节列表页
         html = self.__download(self.catalog_url)
+        if not html:
+            logging.info("小说[%s]下载失败！", self.novel_name)
+            return
 
         # 循环下载章节并提取章节正文
         for (i, url) in self.__parse_chapters(html):
@@ -162,6 +168,19 @@ class Crawler:
 if __name__ == '__main__':
     # 初始化爬虫
     init()
-    # 运行爬虫
+
+    # 运行爬虫，允许使用章节列表页全路径和小说编号两种方式来启动爬虫
     # Crawler("剑来（烽火戏诸侯）", "75_75584").crawl()
-    Crawler("牧神记（宅猪）", "76_76490").crawl()
+    # Crawler("剑来（烽火戏诸侯）", " https://www.biquge5200.cc/75_75584/").crawl()
+    # Crawler("牧神记（宅猪）", "76_76490").crawl()
+
+    # 读取 ./data/novels.txt 文件来批量下载，格式为：<小说名>,<作者名>,<小说编号>
+    with open(r'./data/novels.txt', 'r', encoding='utf-8') as txt:
+        for line in txt.readlines():
+            if "#" in line:
+                continue
+            try:
+                (name, author, code) = line.split(",")
+                Crawler("{}（{}）".format(name.strip(), author.strip()), code.strip()).crawl()
+            except:
+                logging.error("解析并下载[%s]出错!", line)
