@@ -153,14 +153,31 @@ class Crawler:
             logging.info("小说[%s]下载失败！", self.novel_name)
             return
 
+        # 读取上次爬取标志位（number），如果读取到，将从该number后开始爬取
+        flag_number = None
+        flag_file_path = r'{}/{}.txt.flag'.format(novel_txt_dir, self.novel_name)
+        if os.path.exists(flag_file_path) and os.path.isfile(flag_file_path):
+            with open(flag_file_path, 'r', encoding='utf-8') as flag:
+                for line in flag.readlines():
+                    flag_number = int(line.strip())
+
         # 循环下载章节并提取章节正文
+        last_number = None
         for (i, url) in self.__parse_chapters(html):
+            if flag_number is not None and i <= flag_number:
+                continue
             logging.info("download chapter: %04d - %s", i, url)
             html = self.__download(url)
             if html:
                 results = self.__parse_content(html)
                 if results:
                     self.__append_to_text(i, results[0], results[1])
+                    last_number = i
+
+        # 将最后一个章节的number写入标志文件中
+        if last_number:
+            with open(flag_file_path, 'w', encoding='utf-8') as flag:
+                flag.write(str(last_number))
 
         logging.info("小说[%s]下载完成！", self.novel_name)
 
@@ -183,4 +200,4 @@ if __name__ == '__main__':
                 (name, author, code) = line.split(",")
                 Crawler("{}（{}）".format(name.strip(), author.strip()), code.strip()).crawl()
             except:
-                logging.error("解析并下载[%s]出错!", line)
+                logging.error("解析并下载[%s]出错!", line, exc_info=True)
